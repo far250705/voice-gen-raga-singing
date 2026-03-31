@@ -1,0 +1,52 @@
+{
+  "ragas": [
+    {
+      "name": "Kalyani",
+      "melakarta_number": 65,
+      "thaat": "Kalyan",
+      "notes": {
+        "Sa":   { "solfege": "S",  "semitone_offset": 0  },
+        "Ri2":  { "solfege": "R2", "semitone_offset": 2  },
+        "Ga3":  { "solfege": "G3", "semitone_offset": 4  },
+        "Ma2":  { "solfege": "M2", "semitone_offset": 6  },
+        "Pa":   { "solfege": "P",  "semitone_offset": 7  },
+        "Dha2": { "solfege": "D2", "semitone_offset": 9  },
+        "Ni3":  { "solfege": "N3", "semitone_offset": 11 }
+      },
+      "arohanam":  ["Sa", "Ri2", "Ga3", "Ma2", "Pa", "Dha2", "Ni3", "Sa'"],
+      "avarohanam": ["Sa'", "Ni3", "Dha2", "Pa", "Ma2", "Ga3", "Ri2", "Sa"]
+    },
+    {
+      "name": "Shankarabharanam",
+      "melakarta_number": 29,
+      "thaat": "Bilawal",
+      "notes": {
+        "Sa":   { "solfege": "S",  "semitone_offset": 0  },
+        "Ri2":  { "solfege": "R2", "semitone_offset": 2  },
+        "Ga3":  { "solfege": "G3", "semitone_offset": 4  },
+        "Ma1":  { "solfege": "M1", "semitone_offset": 5  },
+        "Pa":   { "solfege": "P",  "semitone_offset": 7  },
+        "Dha2": { "solfege": "D2", "semitone_offset": 9  },
+        "Ni3":  { "solfege": "N3", "semitone_offset": 11 }
+      },
+      "arohanam":  ["Sa", "Ri2", "Ga3", "Ma1", "Pa", "Dha2", "Ni3", "Sa'"],
+      "avarohanam": ["Sa'", "Ni3", "Dha2", "Pa", "Ma1", "Ga3", "Ri2", "Sa"]
+    },
+    {
+      "name": "Mayamalavagowla",
+      "melakarta_number": 15,
+      "thaat": "Bhairav",
+      "notes": {
+        "Sa":   { "solfege": "S",  "semitone_offset": 0  },
+        "Ri1":  { "solfege": "R1", "semitone_offset": 1  },
+        "Ga3":  { "solfege": "G3", "semitone_offset": 4  },
+        "Ma1":  { "solfege": "M1", "semitone_offset": 5  },
+        "Pa":   { "solfege": "P",  "semitone_offset": 7  },
+        "Dha1": { "solfege": "D1", "semitone_offset": 8  },
+        "Ni3":  { "solfege": "N3", "semitone_offset": 11 }
+      },
+      "arohanam":  ["Sa", "Ri1", "Ga3", "Ma1", "Pa", "Dha1", "Ni3", "Sa'"],
+      "avarohanam": ["Sa'", "Ni3", "Dha1", "Pa", "Ma1", "Ga3", "Ri1", "Sa"]
+    }
+  ]
+}

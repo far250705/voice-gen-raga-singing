@@ -1,0 +1,36 @@
+{
+  "thalas": [
+    {
+      "name": "Adi",
+      "beats": 8,
+      "subdivisions": [4, 2, 2],
+      "subdivision_names": ["Laghu", "Drutam", "Drutam"],
+      "clap_pattern": ["Clap", "Finger1", "Finger2", "Finger3", "Clap", "Wave", "Clap", "Wave"],
+      "description": "Most common thala in Carnatic music"
+    },
+    {
+      "name": "Rupaka",
+      "beats": 6,
+      "subdivisions": [2, 4],
+      "subdivision_names": ["Drutam", "Laghu"],
+      "clap_pattern": ["Clap", "Wave", "Clap", "Finger1", "Finger2", "Finger3"],
+      "description": "Common in devotional compositions"
+    },
+    {
+      "name": "Misra Chapu",
+      "beats": 7,
+      "subdivisions": [3, 2, 2],
+      "subdivision_names": ["Tisra", "Drutam", "Drutam"],
+      "clap_pattern": ["Clap", "Finger1", "Finger2", "Clap", "Wave", "Clap", "Wave"],
+      "description": "Asymmetric thala with 3+2+2 grouping"
+    },
+    {
+      "name": "Khanda Chapu",
+      "beats": 5,
+      "subdivisions": [2, 3],
+      "subdivision_names": ["Drutam", "Tisra"],
+      "clap_pattern": ["Clap", "Wave", "Clap", "Finger1", "Finger2"],
+      "description": "Asymmetric thala with 2+3 grouping"
+    }
+  ]
+}

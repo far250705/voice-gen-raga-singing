@@ -1,0 +1,16 @@
+{
+  "shrutis": [
+    { "name": "Sa (C)", "key": "C", "base_frequency_hz": 261.63 },
+    { "name": "C#/Db", "key": "C#", "base_frequency_hz": 277.18 },
+    { "name": "D", "key": "D", "base_frequency_hz": 293.66 },
+    { "name": "D#/Eb", "key": "D#", "base_frequency_hz": 311.13 },
+    { "name": "E (Ga)", "key": "E", "base_frequency_hz": 329.63 },
+    { "name": "F", "key": "F", "base_frequency_hz": 349.23 },
+    { "name": "F#", "key": "F#", "base_frequency_hz": 369.99 },
+    { "name": "G", "key": "G", "base_frequency_hz": 392.00 },
+    { "name": "G#/Ab", "key": "G#", "base_frequency_hz": 415.30 },
+    { "name": "A", "key": "A", "base_frequency_hz": 440.00 },
+    { "name": "A#/Bb", "key": "A#", "base_frequency_hz": 466.16 },
+    { "name": "B", "key": "B", "base_frequency_hz": 493.88 }
+  ]
+}
