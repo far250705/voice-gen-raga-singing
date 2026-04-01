@@ -192,7 +192,7 @@ def generate_notes_gemini(raga: dict, thala: dict, avartanams: int = 4) -> list:
     response = _model.generate_content(
         prompt,
         generation_config={
-            "max_output_tokens": 200
+            "max_output_tokens": 50
         }
     )
 
