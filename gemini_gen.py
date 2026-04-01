@@ -176,35 +176,27 @@ def _validate(data: dict, raga: dict, thala: dict, avartanams: int) -> list:
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 def generate_notes_gemini(raga: dict, thala: dict, avartanams: int = 4) -> list:
-    """
-    Calls Gemini to generate raga-specific notes.
-
-    Returns:
-        list of avartanams, each a list of solfege strings
-
-    Raises:
-        GeminiError — with a user-facing message if generation fails or
-                      Gemini says it can't find the raga.
-    """
     prompt = _build_prompt(raga, thala, avartanams)
 
     try:
-    response = _model.generate_content(
-    prompt,
-    request_options={"timeout": 30}
-)
+        response = _model.generate_content(
+            prompt,
+            generation_config={
+                "max_output_tokens": 200
+            }
+        )
 
-    raw = response.text.strip()
+        raw = response.text.strip()
 
-except Exception as e:
-    raise GeminiError(f"Gemini API error: {e}")
+    except Exception as e:
+        raise GeminiError(f"Gemini API error: {e}")
 
-    # Check for explicit "cannot find" response
+    # Check for explicit "cannot find"
     if raw.upper().startswith("CANNOT_FIND"):
         reason = raw.split(":", 1)[-1].strip()
         raise GeminiError(f"Cannot find raga info: {reason}")
 
-    # Strip any accidental markdown fences
+    # Clean markdown if any
     raw = re.sub(r"^```[a-z]*\n?", "", raw, flags=re.MULTILINE)
     raw = re.sub(r"```$", "", raw, flags=re.MULTILINE)
     raw = raw.strip()
