@@ -349,12 +349,14 @@
 <div class="divider"></div>
 
 <!-- Composition header -->
+<!-- CORRECT - both divs properly closed -->
 <div class="comp-header">
   <span class="comp-title">GENERATED COMPOSITION — 4 avartanams</span>
   <div class="comp-actions">
-  <button class="btn" id="btn-local" onclick="regenerate(false)">⟳&nbsp;Regenerate</button>
-  <button class="btn btn-gemini" id="btn-gemini" onclick="regenerate(true)">✦&nbsp;Gemini</button>
-  <button class="btn" id="btn-play" onclick="playMusic()" style="color:#5eead4;border-color:#5eead4">▶&nbsp;Play</button>
+    <button class="btn" id="btn-local" onclick="regenerate(false)">⟳&nbsp;Regenerate</button>
+    <button class="btn btn-gemini" id="btn-gemini" onclick="regenerate(true)">✦&nbsp;Gemini</button>
+    <button class="btn" id="btn-play" onclick="playMusic()" style="color:#5eead4;border-color:#5eead4">▶&nbsp;Play</button>
+  </div>
 </div>
 
 
@@ -582,6 +584,45 @@ function renderComposition(raga, thala, avartanams) {
     `;
     legend.appendChild(item);
   });
+}
+  // ── Music generation ──────────────────────────────────────────────────────────
+async function playMusic() {
+  if (!currentAvartanams) {
+    setStatus('Generate a composition first!', '#e05a6a');
+    return;
+  }
+
+  const raga = getRaga();
+  const btnPlay = document.getElementById('btn-play');
+  btnPlay.disabled = true;
+  setStatus('<span class="spinner"></span>Generating music... (may take 30-60 sec)', '#5eead4');
+
+  try {
+    const res = await fetch('/api/music', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: currentAvartanams, raga: raga.name })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      setStatus('Music error: ' + data.error, '#e05a6a');
+      return;
+    }
+
+    // Play the audio
+    const audioBytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
+    const blob = new Blob([audioBytes], { type: 'audio/wav' });
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.play();
+    setStatus('♪ Playing generated music...', '#5eead4');
+
+  } catch (e) {
+    setStatus('Network error: ' + e.message, '#e05a6a');
+  } finally {
+    btnPlay.disabled = false;
+  }
 }
 
 boot();
