@@ -29,10 +29,7 @@ def _build_prompt(raga: dict, thala: dict, avartanams: int) -> str:
     valid_notes  = solfege_list + ["S'"]
     beats        = thala["beats"]
 
-    return f"""...
-Respond ONLY with a JSON array of {avartanams} arrays, each with exactly {beats} note strings.
-Return compact JSON with no spaces or newlines. Example: [["S","R2","G3"],["P","D2","S"]]
-No explanation, no markdown, no extra text — pure JSON only."""
+    return f"""You are a Carnatic music composer. Generate a {avartanams}-avartanam composition.
 
 Raga: {raga['name']}
 Valid notes (ONLY use these): {valid_notes}
@@ -50,8 +47,6 @@ Rules:
 Respond ONLY with a JSON array of {avartanams} arrays, each with exactly {beats} note strings.
 Example for 2 avartanams of 4 beats: [["S","R2","G3","M1"],["P","D2","N3","S"]]
 No explanation, no markdown, no extra text — pure JSON only."""
-
-
 # ── Validator ─────────────────────────────────────────────────────────────────
 def _validate(data, raga: dict, thala: dict, avartanams: int) -> list:
     solfege_list = [info["solfege"] for _, info in raga["notes"].items()]
