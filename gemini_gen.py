@@ -29,7 +29,10 @@ def _build_prompt(raga: dict, thala: dict, avartanams: int) -> str:
     valid_notes  = solfege_list + ["S'"]
     beats        = thala["beats"]
 
-    return f"""You are a Carnatic music composer. Generate a {avartanams}-avartanam composition.
+    return f"""...
+Respond ONLY with a JSON array of {avartanams} arrays, each with exactly {beats} note strings.
+Return compact JSON with no spaces or newlines. Example: [["S","R2","G3"],["P","D2","S"]]
+No explanation, no markdown, no extra text — pure JSON only."""
 
 Raga: {raga['name']}
 Valid notes (ONLY use these): {valid_notes}
@@ -94,7 +97,7 @@ def generate_notes_gemini(raga: dict, thala: dict, avartanams: int = 4) -> list:
             print(f"DEBUG: Attempt {attempt + 1} — sending to {GEMINI_MODEL}...")
             response = _model.generate_content(
                 prompt,
-                generation_config={"max_output_tokens": 1024},
+                generation_config={"max_output_tokens": 2048},
                 request_options={"timeout": 60},   # was 25, now 60
             )
             raw = response.text.strip()
