@@ -1,9 +1,10 @@
 import os
 import json
 import random
+import base64
+import requests
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
-import base64
 
 app = Flask(__name__)
 CORS(app)
