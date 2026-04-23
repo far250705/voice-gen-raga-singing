@@ -3,6 +3,7 @@ import json
 import random
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
+import base64
 
 app = Flask(__name__)
 CORS(app)
@@ -227,6 +228,37 @@ def generate():
 
     avartanams = generate_notes_local(raga, thala, avartanams=4)
     return jsonify({"avartanams": avartanams, "source": "local"})
+
+
+@app.route("/api/music", methods=["POST"])
+def generate_music():
+    body = request.get_json(force=True)
+    notes = body.get("notes", [])
+    raga_name = body.get("raga", "Carnatic")
+    
+    # Flatten notes into a string
+    flat_notes = " ".join([n for cycle in notes for n in cycle])
+    prompt = f"Carnatic classical Indian music, raga {raga_name}, notes {flat_notes}, melodic, devotional, traditional"
+
+    hf_token = os.getenv("HF_TOKEN")
+    if not hf_token:
+        return jsonify({"error": "HF_TOKEN not set"}), 500
+
+    try:
+        response = requests.post(
+            "https://api-inference.huggingface.co/models/facebook/musicgen-small",
+            headers={"Authorization": f"Bearer {hf_token}"},
+            json={"inputs": prompt},
+            timeout=120
+        )
+        if response.status_code != 200:
+            return jsonify({"error": f"HF API error: {response.text}"}), 500
+
+        audio_b64 = base64.b64encode(response.content).decode("utf-8")
+        return jsonify({"audio": audio_b64})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
