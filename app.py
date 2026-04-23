@@ -248,7 +248,7 @@ def generate_music():
 
     try:
         response = requests.post(
-            "https://router.huggingface.co/hf-inference/models/facebook/musicgen-small",
+            "https://router.huggingface.co/hf-inference/models/facebook/musicgen-melody",
             headers={"Authorization": f"Bearer {hf_token}"},
             json={"inputs": prompt},
             timeout=120
