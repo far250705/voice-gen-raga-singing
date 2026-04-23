@@ -94,7 +94,7 @@ def generate_notes_gemini(raga: dict, thala: dict, avartanams: int = 4) -> list:
             print(f"DEBUG: Attempt {attempt + 1} — sending to {GEMINI_MODEL}...")
             response = _model.generate_content(
                 prompt,
-                generation_config={"max_output_tokens": 500},
+                generation_config={"max_output_tokens": 1024},
                 request_options={"timeout": 60},   # was 25, now 60
             )
             raw = response.text.strip()
