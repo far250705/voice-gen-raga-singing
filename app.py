@@ -117,6 +117,19 @@ shruti_map = {s["key"]: s for s in SHRUTIS}
 raga_map   = {r["name"]: r for r in RAGAS}
 thala_map  = {t["name"]: t for t in THALAS}
 
+SIMPLE_LABELS = {
+    'S': 'sa', 'R': 'ri', 'G': 'ga', 'M': 'ma',
+    'P': 'pa', 'D': 'da', 'N': 'ni'
+}
+
+def simplify_note_name(note: str) -> str:
+    note = note.strip()
+    if note.lower() in ('s', 'sa', "s'", "sa'"):
+        return 'sa'
+    if not note:
+        return note
+    return SIMPLE_LABELS.get(note[0].upper(), note.lower())
+
 # ── Local note generator (fallback) ──────────────────────────────────────────
 
 def generate_notes_local(raga: dict, thala: dict, avartanams: int = 4) -> list:
@@ -143,7 +156,7 @@ def generate_notes_local(raga: dict, thala: dict, avartanams: int = 4) -> list:
         if beat_in_cycle >= beats_per_cycle - 2:
             current_idx = max(0, current_idx - 1)
         result.append(full_scale[current_idx])
-    return [result[i * beats_per_cycle:(i + 1) * beats_per_cycle]
+    return [[simplify_note_name(n) for n in result[i * beats_per_cycle:(i + 1) * beats_per_cycle]]
             for i in range(avartanams)]
 
 # ── Frontend ──────────────────────────────────────────────────────────────────
