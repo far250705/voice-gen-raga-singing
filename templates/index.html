@@ -435,6 +435,29 @@ function noteFreq(baseHz, semitoneOffset) {
   return Math.round(baseHz * Math.pow(2, semitoneOffset / 12) * 100) / 100;
 }
 
+function simplifyNoteLabel(name) {
+  const raw = name.toString().trim();
+  if (raw === "Sa'" || raw.toLowerCase() === "sa'") return 'sa';
+  const letter = raw[0].toUpperCase();
+  if (letter === 'S') return 'sa';
+  if (letter === 'R') return 'ri';
+  if (letter === 'G') return 'ga';
+  if (letter === 'M') return 'ma';
+  if (letter === 'P') return 'pa';
+  if (letter === 'D') return 'da';
+  if (letter === 'N') return 'ni';
+  return raw.toLowerCase();
+}
+
+function getRagaNoteInfo(raga, note) {
+  const normalized = note.toString().trim().toLowerCase();
+  if (normalized === 'sa') {
+    return raga.notes['Sa'];
+  }
+  const letter = normalized[0].toUpperCase();
+  return Object.values(raga.notes).find(info => info.solfege.startsWith(letter));
+}
+
 // ── Scale panels ──────────────────────────────────────────────────────────────
 function renderScale(bodyId, scale, notesDict, baseHz, color) {
   const body = document.getElementById(bodyId);
@@ -445,7 +468,7 @@ function renderScale(bodyId, scale, notesDict, baseHz, color) {
     const info    = notesDict[key];
     const offset  = isUpper ? 12 : (info ? info.semitone_offset : 0);
     const freq    = noteFreq(baseHz, offset);
-    const display = isUpper ? "S'" : (info ? info.solfege : name);
+    const display = simplifyNoteLabel(name);
 
     const cell = document.createElement('div');
     cell.className = 'note-cell';
@@ -608,11 +631,10 @@ async function playMusic() {
 
   for (const cycle of currentAvartanams) {
     for (const note of cycle) {
-      const info = raga.notes[
-        Object.keys(raga.notes).find(k => raga.notes[k].solfege === note)
-      ];
-      const isUpper = note === "S'";
-      const offset = isUpper ? 12 : (info ? info.semitone_offset : 0);
+      const info = getRagaNoteInfo(raga, note);
+      const offset = note.toString().trim().toLowerCase() === 'sa'
+        ? 0
+        : (info ? info.semitone_offset : 0);
       const freq = baseHz * Math.pow(2, offset / 12);
 
       const osc = audioCtx.createOscillator();
