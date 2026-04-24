@@ -22,58 +22,92 @@ class GeminiError(Exception):
     """Raised when Gemini cannot generate valid notes."""
     pass
 
+SIMPLE_LABELS = {
+    'S': 'sa', 'R': 'ri', 'G': 'ga', 'M': 'ma',
+    'P': 'pa', 'D': 'da', 'N': 'ni'
+}
+VALID_SIMPLE_NOTES = ['sa', 'ri', 'ga', 'ma', 'pa', 'da', 'ni']
+
+
+def simplify_note_token(note: str) -> str:
+    note = note.strip()
+    if note.lower() in ('s', 'sa', "s'", "sa'"):
+        return 'sa'
+    if not note:
+        return note
+    return SIMPLE_LABELS.get(note[0].upper(), note.lower())
+
+
+def normalize_note_token(note: str, raga: dict) -> str:
+    raw = note.strip()
+    if raw.lower() in ('s', 'sa', "s'", "sa'"):
+        return 'S'
+    if not raw:
+        raise GeminiError('Empty note in Gemini output')
+    first = raw[0].upper()
+    for _, info in raga['notes'].items():
+        if info['solfege'].startswith(first):
+            return info['solfege']
+    raise GeminiError(f"Invalid note '{note}' for raga {raga['name']}")
+
 
 # ── Prompt builder ────────────────────────────────────────────────────────────
 def _build_prompt(raga: dict, thala: dict, avartanams: int) -> str:
     solfege_list = [info["solfege"] for _, info in raga["notes"].items()]
-    valid_notes  = solfege_list + ["S'"]
-    beats        = thala["beats"]
+    simplified_arohanam = [simplify_note_token(n) for n in raga["arohanam"]]
+    simplified_avarohanam = [simplify_note_token(n) for n in raga["avarohanam"]]
+    beats = thala["beats"]
 
     return f"""You are a Carnatic music composer. Generate a {avartanams}-avartanam composition.
 
 Raga: {raga['name']}
-Valid notes (ONLY use these): {valid_notes}
+Valid notes (ONLY use these): {VALID_SIMPLE_NOTES}
 Thala: {thala['name']} ({beats} beats per avartanam)
-Arohanam:   {raga['arohanam']}
-Avarohanam: {raga['avarohanam']}
+Arohanam (simplified):   {simplified_arohanam}
+Avarohanam (simplified): {simplified_avarohanam}
 
 Rules:
 1. Each avartanam must have exactly {beats} notes.
 2. Use ONLY the valid notes listed above. No other symbols.
-3. The last note of the last avartanam must be "S".
-4. Each avartanam should start on "S" or a raga-characteristic note.
+3. The last note of the last avartanam must be "sa".
+4. Each avartanam should start on "sa" or a raga-characteristic note.
 5. Follow melodic phrases typical of {raga['name']}.
 
 Respond ONLY with a JSON array of {avartanams} arrays, each with exactly {beats} note strings.
-Example for 2 avartanams of 4 beats: [["S","R2","G3","M1"],["P","D2","N3","S"]]
+Example for 2 avartanams of 4 beats: [["sa","ri","ga","ma"],["pa","da","ni","sa"]]
 No explanation, no markdown, no extra text — pure JSON only."""
 # ── Validator ─────────────────────────────────────────────────────────────────
 def _validate(data, raga: dict, thala: dict, avartanams: int) -> list:
     solfege_list = [info["solfege"] for _, info in raga["notes"].items()]
-    valid_notes  = set(solfege_list + ["S'", "S"])
-    beats        = thala["beats"]
+    valid_notes = set(solfege_list + VALID_SIMPLE_NOTES + ["S'", "S"])
+    beats = thala["beats"]
 
     if not isinstance(data, list):
         raise GeminiError(f"Expected a JSON array, got {type(data).__name__}")
     if len(data) != avartanams:
         raise GeminiError(f"Expected {avartanams} avartanams, got {len(data)}")
 
+    normalized = []
     for i, cycle in enumerate(data):
         if not isinstance(cycle, list):
             raise GeminiError(f"Avartanam {i+1} is not a list")
         if len(cycle) != beats:
             raise GeminiError(f"Avartanam {i+1} has {len(cycle)} notes, expected {beats}")
+        normalized_cycle = []
         for note in cycle:
-            if note not in valid_notes:
+            actual = normalize_note_token(note, raga)
+            if actual not in valid_notes:
                 raise GeminiError(
                     f"Invalid note '{note}' in avartanam {i+1}. Valid: {sorted(valid_notes)}"
                 )
+            normalized_cycle.append(actual)
+        normalized.append(normalized_cycle)
 
     # Soft-fix: ensure last note is Sa
-    if data[-1][-1] not in ("S", "S'"):
-        data[-1][-1] = "S"
+    if normalized[-1][-1] not in ("S", "S'"):
+        normalized[-1][-1] = "S"
 
-    return data
+    return [[simplify_note_token(note) for note in cycle] for cycle in normalized]
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
