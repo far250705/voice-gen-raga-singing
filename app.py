@@ -252,7 +252,7 @@ def generate_music():
     raga_name = body.get("raga", "Carnatic")
 
     flat_notes = " ".join([n for cycle in notes for n in cycle])
-    prompt = f"Carnatic classical Indian music, raga {raga_name}, {flat_notes}, melodic, devotional, traditional, sitar tabla"
+    prompt = f"Female voice singing Carnatic classical music, raga {raga_name}, solo female vocalist singing solfege notes {flat_notes}, Indian classical vocal music, pure voice, no instruments, devotional, melodic"
 
     stability_key = os.getenv("STABILITY_API_KEY")
     if not stability_key:
