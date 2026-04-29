@@ -252,31 +252,41 @@ def generate_music():
     raga_name = body.get("raga", "Carnatic")
 
     flat_notes = " ".join([n for cycle in notes for n in cycle])
-    prompt = f"South Indian Carnatic classical music, {raga_name} raga, female vocalist singing solfege syllables {flat_notes}, pure vocal, no instruments, devotional, slow tempo, traditional"
-    stability_key = os.getenv("STABILITY_API_KEY")
-    if not stability_key:
-        return jsonify({"error": "STABILITY_API_KEY not set"}), 500
+    prompt = f"South Indian Carnatic classical vocal music, {raga_name} raga, female singer singing solfege notes {flat_notes}, traditional devotional, veena accompaniment"
+
+    suno_key = os.getenv("SUNO_API_KEY")
+    if not suno_key:
+        return jsonify({"error": "SUNO_API_KEY not set"}), 500
 
     try:
-        
-        response = requests.post(
-            "https://api.stability.ai/v2beta/audio/stable-audio-2/text-to-audio",
+        # Step 1 — generate
+        gen_response = requests.post(
+            "https://api.sunoapi.org/api/generate",
             headers={
-                "Authorization": f"Bearer {stability_key}",
-                "Accept": "audio/*"
+                "Authorization": f"Bearer {suno_key}",
+                "Content-Type": "application/json"
             },
-            files={
-                "prompt": (None, prompt),
-                "output_format": (None, "mp3"),
-                "duration": (None, "10")
+            json={
+                "prompt": prompt,
+                "mv": "chirp-v3-5",
+                "make_instrumental": False,
+                "wait_audio": True  # wait for completion
             },
             timeout=120
         )
 
-        if response.status_code != 200:
-            return jsonify({"error": f"Stability API error: {response.text}"}), 500
+        if gen_response.status_code != 200:
+            return jsonify({"error": f"Suno error: {gen_response.text}"}), 500
 
-        audio_b64 = base64.b64encode(response.content).decode("utf-8")
+        result = gen_response.json()
+        audio_url = result[0].get("audio_url") if isinstance(result, list) else result.get("audio_url")
+
+        if not audio_url:
+            return jsonify({"error": "No audio URL returned"}), 500
+
+        # Step 2 — download audio
+        audio_response = requests.get(audio_url, timeout=60)
+        audio_b64 = base64.b64encode(audio_response.content).decode("utf-8")
         return jsonify({"audio": audio_b64, "format": "mp3"})
 
     except Exception as e:
