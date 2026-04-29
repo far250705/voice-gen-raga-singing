@@ -290,25 +290,24 @@ def generate_music():
         for _ in range(20):
             time.sleep(5)
             poll = requests.get(
-                f"https://api.sunoapi.org/api/v1/query?taskId={task_id}",
+                f"https://api.sunoapi.org/api/v1/generate/record-info?taskId={task_id}",
                 headers={"Authorization": f"Bearer {suno_key}"},
                 timeout=30
             )
             poll_data = poll.json()
             print(f"DEBUG poll response: {poll_data}")
-
             data = poll_data.get("data", {})
             status = data.get("status")
-
-            if status == "complete":
-                clips = data.get("clips", [])
-                audio_url = clips[0].get("audio_url") if clips else data.get("audio_url")
-
+            
+            if status == "SUCCESS":
+                tracks = data.get("response", {}).get("data", [])
+                audio_url = tracks[0].get("audio_url") if tracks else None
                 if audio_url:
                     audio_response = requests.get(audio_url, timeout=60)
                     audio_b64 = base64.b64encode(audio_response.content).decode("utf-8")
                     return jsonify({"audio": audio_b64, "format": "mp3"})
-
+            elif status == "FAILED":
+                return jsonify({"error": "Music generation failed"}), 500
         return jsonify({"error": "Music generation timed out"}), 500
 
     except Exception as e:
