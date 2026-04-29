@@ -250,27 +250,34 @@ def generate_music():
     body = request.get_json(force=True)
     notes = body.get("notes", [])
     raga_name = body.get("raga", "Carnatic")
-    
-    # Flatten notes into a string
-    flat_notes = " ".join([n for cycle in notes for n in cycle])
-    prompt = f"Carnatic classical Indian music, raga {raga_name}, notes {flat_notes}, melodic, devotional, traditional"
 
-    hf_token = os.getenv("HF_TOKEN")
-    if not hf_token:
-        return jsonify({"error": "HF_TOKEN not set"}), 500
+    flat_notes = " ".join([n for cycle in notes for n in cycle])
+    prompt = f"Carnatic classical Indian music, raga {raga_name}, {flat_notes}, melodic, devotional, traditional, sitar tabla"
+
+    stability_key = os.getenv("STABILITY_API_KEY")
+    if not stability_key:
+        return jsonify({"error": "STABILITY_API_KEY not set"}), 500
 
     try:
         response = requests.post(
-            "https://router.huggingface.co/hf-inference/models/facebook/musicgen-melody",
-            headers={"Authorization": f"Bearer {hf_token}"},
-            json={"inputs": prompt},
+            "https://api.stability.ai/v2beta/audio/stable-audio-2/text-to-audio",
+            headers={
+                "Authorization": f"Bearer {stability_key}",
+                "Accept": "audio/*"
+            },
+            data={
+                "prompt": prompt,
+                "output_format": "mp3",
+                "duration": 10
+            },
             timeout=120
         )
+
         if response.status_code != 200:
-            return jsonify({"error": f"HF API error: {response.text}"}), 500
+            return jsonify({"error": f"Stability API error: {response.text}"}), 500
 
         audio_b64 = base64.b64encode(response.content).decode("utf-8")
-        return jsonify({"audio": audio_b64})
+        return jsonify({"audio": audio_b64, "format": "mp3"})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
