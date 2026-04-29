@@ -287,8 +287,8 @@ def generate_music():
 
         # Step 2 — poll for completion
         import time
-        for _ in range(30):
-            time.sleep(5)
+        for _ in range(40):
+            time.sleep(10)
             poll = requests.get(
                 f"https://api.sunoapi.org/api/v1/generate/record-info?taskId={task_id}",
                 headers={"Authorization": f"Bearer {suno_key}"},
@@ -305,11 +305,8 @@ def generate_music():
                 audio_url = None
                 if suno_data:
                     audio_url = suno_data[0].get("audioUrl") or suno_data[0].get("streamAudioUrl")
-
                 if audio_url:
-                    audio_response = requests.get(audio_url, timeout=60)
-                    audio_b64 = base64.b64encode(audio_response.content).decode("utf-8")
-                    return jsonify({"audio": audio_b64, "format": "mp3"})
+                    return jsonify({"audio_url": audio_url, "format": "mp3"})
 
             elif status == "FAILED":
                 return jsonify({"error": "Music generation failed"}), 500
