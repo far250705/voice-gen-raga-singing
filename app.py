@@ -273,22 +273,40 @@ def generate_music():
                 "model": "V4_5ALL",
                 "callBackUrl": ""
             },
-            timeout=120
+            timeout=60
         )
 
         if gen_response.status_code != 200:
             return jsonify({"error": f"Suno error: {gen_response.text}"}), 500
 
         result = gen_response.json()
-        audio_url = result[0].get("audio_url") if isinstance(result, list) else result.get("audio_url")
+        
+        # Get task ID from response
+        task_id = result.get("taskId") or result.get("task_id") or (result[0].get("taskId") if isinstance(result, list) else None)
 
-        if not audio_url:
-            return jsonify({"error": "No audio URL returned"}), 500
+        if not task_id:
+            return jsonify({"error": f"No task ID returned: {result}"}), 500
 
-        # Step 2 — download audio
-        audio_response = requests.get(audio_url, timeout=60)
-        audio_b64 = base64.b64encode(audio_response.content).decode("utf-8")
-        return jsonify({"audio": audio_b64, "format": "mp3"})
+        # Step 2 — poll for completion
+        import time
+        for _ in range(20):  # poll up to 20 times
+            time.sleep(5)
+            poll = requests.get(
+                f"https://api.sunoapi.org/api/v1/generate/{task_id}",
+                headers={"Authorization": f"Bearer {suno_key}"},
+                timeout=30
+            )
+            poll_data = poll.json()
+            status = poll_data.get("status") or (poll_data[0].get("status") if isinstance(poll_data, list) else None)
+            
+            if status == "complete":
+                audio_url = poll_data.get("audio_url") or (poll_data[0].get("audio_url") if isinstance(poll_data, list) else None)
+                if audio_url:
+                    audio_response = requests.get(audio_url, timeout=60)
+                    audio_b64 = base64.b64encode(audio_response.content).decode("utf-8")
+                    return jsonify({"audio": audio_b64, "format": "mp3"})
+
+        return jsonify({"error": "Music generation timed out"}), 500
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
