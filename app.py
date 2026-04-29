@@ -271,7 +271,7 @@ def generate_music():
                 "customMode": False,
                 "instrumental": False,
                 "model": "V4_5ALL",
-                "callBackUrl": "https://httpbin.org/post"  
+                "callBackUrl": "https://httpbin.org/post"
             },
             timeout=60
         )
@@ -280,8 +280,6 @@ def generate_music():
             return jsonify({"error": f"Suno error: {gen_response.text}"}), 500
 
         result = gen_response.json()
-        
-        # Get task ID from response
         task_id = result.get("data", {}).get("taskId")
 
         if not task_id:
@@ -289,7 +287,7 @@ def generate_music():
 
         # Step 2 — poll for completion
         import time
-        for _ in range(20):  # poll up to 20 times
+        for _ in range(20):
             time.sleep(5)
             poll = requests.get(
                 f"https://api.sunoapi.org/api/v1/generate/{task_id}",
@@ -297,10 +295,15 @@ def generate_music():
                 timeout=30
             )
             poll_data = poll.json()
-            status = poll_data.get("status") or (poll_data[0].get("status") if isinstance(poll_data, list) else None)
-            
+            print(f"DEBUG poll response: {poll_data}")
+
+            data = poll_data.get("data", {})
+            status = data.get("status")
+
             if status == "complete":
-                audio_url = poll_data.get("audio_url") or (poll_data[0].get("audio_url") if isinstance(poll_data, list) else None)
+                clips = data.get("clips", [])
+                audio_url = clips[0].get("audio_url") if clips else data.get("audio_url")
+
                 if audio_url:
                     audio_response = requests.get(audio_url, timeout=60)
                     audio_b64 = base64.b64encode(audio_response.content).decode("utf-8")
