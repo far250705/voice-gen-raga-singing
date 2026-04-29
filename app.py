@@ -301,7 +301,7 @@ def generate_music():
             status = data.get("status")
 
             if status in ("SUCCESS", "TEXT_SUCCESS"):
-                suno_data = data.get("response", {}).get("sunoData", [])
+                suno_data = (data.get("response") or {}).get("sunoData", [])
                 audio_url = None
                 if suno_data:
                     audio_url = suno_data[0].get("audioUrl") or suno_data[0].get("streamAudioUrl")
