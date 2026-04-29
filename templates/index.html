@@ -618,7 +618,7 @@ async function playMusic() {
   const raga = getRaga();
   const btnPlay = document.getElementById('btn-play');
   btnPlay.disabled = true;
-  setStatus('<span class="spinner"></span>Generating music... (10-20 sec)', '#5eead4');
+  setStatus('<span class="spinner"></span>Generating music... (may take a few minutes)', '#5eead4');
 
   try {
     const res = await fetch('/api/music', {
@@ -633,10 +633,24 @@ async function playMusic() {
       return;
     }
 
-    const audioBytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
-const blob = new Blob([audioBytes], { type: 'audio/mp3' });
-const url = URL.createObjectURL(blob);
+    let player = document.getElementById('audio-player');
+    if (!player) {
+      player = document.createElement('audio');
+      player.id = 'audio-player';
+      player.controls = true;
+      player.style = 'margin: 10px 40px; width: calc(100% - 80px); filter: invert(1);';
+      document.querySelector('.legend').after(player);
+    }
+    player.src = data.audio_url;
+    player.play();
+    setStatus('♪ Playing generated music...', '#5eead4');
 
+  } catch (e) {
+    setStatus('Network error: ' + e.message, '#e05a6a');
+  } finally {
+    btnPlay.disabled = false;
+  }
+}
 // Add visible audio player
 let player = document.getElementById('audio-player');
 if (!player) {
