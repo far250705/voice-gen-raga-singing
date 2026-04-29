@@ -271,7 +271,7 @@ def generate_music():
                 "customMode": False,
                 "instrumental": False,
                 "model": "V4_5ALL",
-                "callBackUrl": ""
+                "waitAudio": True
             },
             timeout=60
         )
