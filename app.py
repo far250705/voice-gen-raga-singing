@@ -280,7 +280,7 @@ def generate_music():
             return jsonify({"error": f"Suno error: {gen_response.text}"}), 500
 
         result = gen_response.json()
-        task_id = result.get("data", {}).get("taskId")
+        task_id = (result.get("data") or {}).get("taskId")
 
         if not task_id:
             return jsonify({"error": f"No task ID returned: {result}"}), 500
@@ -295,7 +295,7 @@ def generate_music():
                 timeout=30
             )
             poll_data = poll.json()
-            print(f"DEBUG poll response status: {poll_data.get('data', {}).get('status')}")
+            print(f"DEBUG poll response status: {(poll_data.get('data') or {}).get('status')}")
 
             data = poll_data.get("data") or {}
             status = data.get("status")
