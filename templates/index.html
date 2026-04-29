@@ -615,44 +615,37 @@ async function playMusic() {
     return;
   }
 
-  const raga  = getRaga();
-  const shruti = getShruti();
-  const thala = getThala();
-  const baseHz = shruti.base_frequency_hz;
+  const raga = getRaga();
+  const btnPlay = document.getElementById('btn-play');
+  btnPlay.disabled = true;
+  setStatus('<span class="spinner"></span>Generating music... (10-20 sec)', '#5eead4');
 
-  setStatus('♪ Playing composition...', '#5eead4');
+  try {
+    const res = await fetch('/api/music', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: currentAvartanams, raga: raga.name })
+    });
+    const data = await res.json();
 
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const beatsPerCycle = thala.beats;
-  const bpm = 80;
-  const beatDuration = 60 / bpm;
-
-  let time = audioCtx.currentTime + 0.1;
-
-  for (const cycle of currentAvartanams) {
-    for (const note of cycle) {
-      const info = getRagaNoteInfo(raga, note);
-      const offset = note.toString().trim().toLowerCase() === 'sa'
-        ? 0
-        : (info ? info.semitone_offset : 0);
-      const freq = baseHz * Math.pow(2, offset / 12);
-
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, time);
-      gain.gain.setValueAtTime(0.4, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + beatDuration * 0.9);
-
-      osc.start(time);
-      osc.stop(time + beatDuration);
-      time += beatDuration;
+    if (data.error) {
+      setStatus('Music error: ' + data.error, '#e05a6a');
+      return;
     }
-    
+
+    const audioBytes = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0));
+    const blob = new Blob([audioBytes], { type: 'audio/mp3' });
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.play();
+    setStatus('♪ Playing generated music...', '#5eead4');
+
+  } catch (e) {
+    setStatus('Network error: ' + e.message, '#e05a6a');
+  } finally {
+    btnPlay.disabled = false;
   }
+}
 
   const totalDuration = currentAvartanams.flat().length * beatDuration * 1000;
   setTimeout(() => setStatus('', ''), totalDuration + 500);
