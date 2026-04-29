@@ -268,9 +268,10 @@ def generate_music():
             },
             json={
                 "prompt": prompt,
-                "model": "V4",
+                "customMode": False,
                 "instrumental": False,
-                "wait_audio": True
+                "model": "V4_5ALL",
+                "callBackUrl": ""
             },
             timeout=120
         )
