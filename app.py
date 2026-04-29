@@ -261,16 +261,16 @@ def generate_music():
     try:
         # Step 1 — generate
         gen_response = requests.post(
-            "https://api.sunoapi.org/api/generate",
+            "https://api.sunoapi.org/api/v1/generate",
             headers={
                 "Authorization": f"Bearer {suno_key}",
                 "Content-Type": "application/json"
             },
             json={
                 "prompt": prompt,
-                "mv": "chirp-v3-5",
-                "make_instrumental": False,
-                "wait_audio": True  # wait for completion
+                "model": "V4",
+                "instrumental": False,
+                "wait_audio": True
             },
             timeout=120
         )
