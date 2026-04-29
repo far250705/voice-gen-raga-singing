@@ -297,7 +297,7 @@ def generate_music():
             poll_data = poll.json()
             print(f"DEBUG poll response status: {poll_data.get('data', {}).get('status')}")
 
-            data = poll_data.get("data", {})
+            data = poll_data.get("data") or {}
             status = data.get("status")
 
             if status in ("SUCCESS", "TEXT_SUCCESS"):
