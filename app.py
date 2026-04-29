@@ -282,7 +282,7 @@ def generate_music():
         result = gen_response.json()
         
         # Get task ID from response
-        task_id = result.get("taskId") or result.get("task_id") or (result[0].get("taskId") if isinstance(result, list) else None)
+        task_id = result.get("data", {}).get("taskId")
 
         if not task_id:
             return jsonify({"error": f"No task ID returned: {result}"}), 500
