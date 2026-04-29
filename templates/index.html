@@ -651,27 +651,6 @@ async function playMusic() {
     btnPlay.disabled = false;
   }
 }
-// Add visible audio player
-let player = document.getElementById('audio-player');
-if (!player) {
-  player = document.createElement('audio');
-  player.id = 'audio-player';
-  player.controls = true;
-  player.style = 'margin: 10px 40px; width: calc(100% - 80px); filter: invert(1);';
-  document.querySelector('.legend').after(player);
-}
-player.src = url;
-player.play();
-setStatus('♪ Playing generated music...', '#5eead4');
-
-  } catch (e) {
-    setStatus('Network error: ' + e.message, '#e05a6a');
-  } finally {
-    btnPlay.disabled = false;
-  }
-}
-
-  
 
 boot();
 </script>
