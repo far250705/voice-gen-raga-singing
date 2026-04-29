@@ -290,7 +290,7 @@ def generate_music():
         for _ in range(20):
             time.sleep(5)
             poll = requests.get(
-                f"https://api.sunoapi.org/api/v1/generate/{task_id}",
+                f"https://api.sunoapi.org/api/v1/query?taskId={task_id}",
                 headers={"Authorization": f"Bearer {suno_key}"},
                 timeout=30
             )
