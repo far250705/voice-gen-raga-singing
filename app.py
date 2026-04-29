@@ -259,16 +259,17 @@ def generate_music():
         return jsonify({"error": "STABILITY_API_KEY not set"}), 500
 
     try:
+        
         response = requests.post(
             "https://api.stability.ai/v2beta/audio/stable-audio-2/text-to-audio",
             headers={
                 "Authorization": f"Bearer {stability_key}",
                 "Accept": "audio/*"
             },
-            data={
-                "prompt": prompt,
-                "output_format": "mp3",
-                "duration": 10
+            files={
+                "prompt": (None, prompt),
+                "output_format": (None, "mp3"),
+                "duration": (None, "10")
             },
             timeout=120
         )
