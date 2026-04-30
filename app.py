@@ -255,6 +255,7 @@ def generate_music():
     prompt = f"South Indian Carnatic classical vocal music, {raga_name} raga, female singer singing solfege notes {flat_notes}, traditional devotional, veena accompaniment"
 
     suno_key = os.getenv("SUNO_API_KEY")
+    print("DEBUG SUNO KEY:", os.getenv("SUNO_API_KEY"))
     if not suno_key:
         return jsonify({"error": "SUNO_API_KEY not set"}), 500
 
