@@ -216,106 +216,41 @@ def get_raga_notes(name):
 
 # ── API: generate composition ─────────────────────────────────────────────────
 
-@app.route("/api/generate", methods=["POST"])
-def generate():
-    body       = request.get_json(force=True)
-    raga_name  = body.get("raga")
-    thala_name = body.get("thala")
-    use_gemini = body.get("use_gemini", False)
+@app.route("/api/diffsinger-music", methods=["POST"])
+def generate_diffsinger():
+    body = request.json
+    lyrics = body.get("lyrics")  # These come from your Gemini generation
+    
+    # DiffSinger requires melody notes (C4, D4, etc.)
+    # You can either generate these with Gemini or send a fixed pattern
+    notes = body.get("notes", "C4 D4 E4 F4 G4 A4 B4 C5") 
 
-    raga  = raga_map.get(raga_name)
-    thala = thala_map.get(thala_name)
-
-    if not raga:
-        return jsonify({"error": f"Raga '{raga_name}' not found"}), 404
-    if not thala:
-        return jsonify({"error": f"Thala '{thala_name}' not found"}), 404
-
-    if use_gemini:
-        try:
-            from gemini_gen import generate_notes_gemini, GeminiError
-            avartanams = generate_notes_gemini(raga, thala, avartanams=4)
-            return jsonify({"avartanams": avartanams, "source": "gemini"})
-        except Exception as e:
-            avartanams = generate_notes_local(raga, thala, avartanams=4)
-            return jsonify({"avartanams": avartanams, "source": "local",
-                            "warning": str(e)})
-
-    avartanams = generate_notes_local(raga, thala, avartanams=4)
-    return jsonify({"avartanams": avartanams, "source": "local"})
-
-
-@app.route("/api/music", methods=["POST"])
-def generate_music():
-    body = request.get_json(force=True)
-    notes = body.get("notes", [])
-    raga_name = body.get("raga", "Carnatic")
-
-    flat_notes = " ".join([n for cycle in notes for n in cycle])
-    prompt = f"South Indian Carnatic classical vocal music, {raga_name} raga, female singer singing solfege notes {flat_notes}, traditional devotional, veena accompaniment"
-
-    suno_key = os.getenv("SUNO_API_KEY")
-    print("DEBUG SUNO KEY:", os.getenv("SUNO_API_KEY"))
-    if not suno_key:
-        return jsonify({"error": "SUNO_API_KEY not set"}), 500
+    # YOUR PINGGY URL FROM COLAB
+    COLAB_URL = "https://your-pinggy-id.pinggy.link/generate"
 
     try:
-        # Step 1 — generate
-        gen_response = requests.post(
-            "https://api.sunoapi.org/api/v1/generate",
-            headers={
-                "Authorization": f"Bearer {suno_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "prompt": prompt,
-                "customMode": False,
-                "instrumental": False,
-                "model": "V4_5ALL",
-                "callBackUrl": "https://httpbin.org/post"
-            },
-            timeout=60
+        # Step 1: Send lyrics to Colab
+        response = requests.post(
+            COLAB_URL, 
+            json={"lyrics": lyrics, "notes": notes},
+            timeout=120 # DiffSinger can take a minute on CPU
         )
+        
+        if response.status_code != 200:
+            return jsonify({"error": "Colab server error"}), 500
 
-        if gen_response.status_code != 200:
-            return jsonify({"error": f"Suno error: {gen_response.text}"}), 500
+        # Step 2: Get the Base64 audio string back
+        audio_data = response.json().get("audio_data")
 
-        result = gen_response.json()
-        task_id = (result.get("data") or {}).get("taskId")
-
-        if not task_id:
-            return jsonify({"error": f"No task ID returned: {result}"}), 500
-
-        # Step 2 — poll for completion
-        import time
-        for _ in range(40):
-            time.sleep(10)
-            poll = requests.get(
-                f"https://api.sunoapi.org/api/v1/generate/record-info?taskId={task_id}",
-                headers={"Authorization": f"Bearer {suno_key}"},
-                timeout=30
-            )
-            poll_data = poll.json()
-            print(f"DEBUG poll response status: {(poll_data.get('data') or {}).get('status')}")
-
-            data = poll_data.get("data") or {}
-            status = data.get("status")
-
-            if status in ("SUCCESS", "TEXT_SUCCESS"):
-                suno_data = (data.get("response") or {}).get("sunoData", [])
-                audio_url = None
-                if suno_data:
-                    audio_url = suno_data[0].get("audioUrl") or suno_data[0].get("streamAudioUrl")
-                if audio_url:
-                    return jsonify({"audio_url": audio_url, "format": "mp3"})
-
-            elif status == "FAILED":
-                return jsonify({"error": "Music generation failed"}), 500
-
-        return jsonify({"error": "Music generation timed out"}), 500
+        # Step 3: Return lyrics and audio to the frontend
+        return jsonify({
+            "lyrics": lyrics,
+            "audio": audio_data  # Sending raw base64 string to frontend
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
